@@ -90,11 +90,11 @@ export default function Dashboard() {
           minChildWidth="320px"
           alignItems="flex-start"
         >
-          <Box p="8" borderRadius="8" bg="gray.800" pb="4">
+          <Box p={["6", "8"]} borderRadius="8" bg="gray.800" pb="4">
             <Text>Inscritos da semana</Text>
             <Chart type="area" height="160" options={options} series={series} />
           </Box>
-          <Box p="8" borderRadius="8" bg="gray.800" pb="4">
+          <Box p={["6", "8"]} borderRadius="8" bg="gray.800" pb="4">
             <Text>Taxa de Abertura</Text>
             <Chart type="area" height="160" options={options} series={series} />
           </Box>
