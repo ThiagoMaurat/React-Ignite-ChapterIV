@@ -16,6 +16,10 @@ import { Sidebar } from "../../components/SideBar";
 import { SubmitHandler, useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useMutation } from "react-query";
+import { api } from "../../services/api";
+import { queryClient } from "../../services/queryClient";
+import { useRouter } from "next/router";
 
 type CreateUserFormData = {
   email: string;
@@ -36,11 +40,26 @@ const CreateUserFormSchema = yup.object().shape({
     .oneOf([yup.ref("password"), null], "Senhas não conferem"),
 });
 
-const handleCreateUser: SubmitHandler<CreateUserFormData> = async (data) => {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-};
-
 export default function Create() {
+  const createUser = useMutation(
+    async (user: CreateUserFormData) => {
+      const response = await api.post("users", {
+        user: {
+          ...user,
+          created_at: new Date(),
+        },
+      });
+      return response;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries("users");
+      },
+    }
+  );
+
+  const router = useRouter();
+
   const {
     register,
     handleSubmit,
@@ -49,6 +68,13 @@ export default function Create() {
   } = useForm<CreateUserFormData>({
     resolver: yupResolver(CreateUserFormSchema),
   });
+
+  const handleCreateUser: SubmitHandler<CreateUserFormData> = async (
+    values
+  ) => {
+    await createUser.mutateAsync(values);
+    router.push("/users");
+  };
   return (
     <Box>
       <Header />
@@ -87,7 +113,7 @@ export default function Create() {
                 {...register("password")}
                 name="password"
                 type="password"
-                label="Nome completo"
+                label="Senha"
                 error={errors.password}
               />
               <Input
@@ -99,21 +125,20 @@ export default function Create() {
               />
             </SimpleGrid>
           </VStack>
-          <Flex mt="8" justify={"flex-end"}>
-            <HStack spacing={"4"}>
-              <Link href="/users/create" passHref>
+          <Flex mt="8" justify="flex-end">
+            <HStack spacing="4">
+              <Link href="/users" passHref>
                 <Button as="a" colorScheme="whiteAlpha">
                   Cancelar
                 </Button>
-                <Button
-                  isLoading={formState.isSubmitting}
-                  type="submit"
-                  as="a"
-                  colorScheme="pink"
-                >
-                  Salvar
-                </Button>
               </Link>
+              <Button
+                type="submit"
+                colorScheme="pink"
+                isLoading={formState.isSubmitting}
+              >
+                Salvar
+              </Button>
             </HStack>
           </Flex>
         </Box>
